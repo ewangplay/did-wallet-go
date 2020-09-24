@@ -23,7 +23,7 @@ type IdentityType string
 // IdentityType constants
 const (
 	X509IdentityType IdentityType = "X509"
-	RawIdentityType  IdentityType = "RawKey"
+	RawIdentityType  IdentityType = "Raw"
 )
 
 // wallet represents a did wallet

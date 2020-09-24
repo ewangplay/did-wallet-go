@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestRawKeyIdentity(t *testing.T) {
+func TestRawIdentity(t *testing.T) {
 	// New Raw identity
 	id := "did:example:3dda540891d14a1baec2c7485c273c00"
 	keyID := "keys-1"
@@ -17,7 +17,7 @@ func TestRawKeyIdentity(t *testing.T) {
 		PrivateKeyHex: privateKeyHex,
 		PublicKeyHex:  publicKeyHex,
 	}
-	x, _ := NewRawKeyIdentity(id, key)
+	x, _ := NewRawIdentity(id, key)
 
 	// Assert version
 	if x.Version() != rawKeyV1 {

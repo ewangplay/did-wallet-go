@@ -34,7 +34,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	r, err := createRawKeyIdentity()
+	r, err := createRawIdentity()
 	if err != nil {
 		fmt.Printf("Create Raw identity failed: %v", err)
 		os.Exit(1)
@@ -75,7 +75,7 @@ func main() {
 	}
 }
 
-func createRawKeyIdentity() (wallet.Identity, error) {
+func createRawIdentity() (wallet.Identity, error) {
 	id := "did:example:3dda540891d14a1baec2c7485c273c00"
 	keyID := "keys-1"
 	privateKeyHex := "a889f4da49ff8dd6b03d4334723fe3e5ff55ae6a2483de1627bec873b0b73e1e86eabd6abce2f96553251de61def0265784688ff712ce583621a5b181ef21639"
@@ -86,7 +86,7 @@ func createRawKeyIdentity() (wallet.Identity, error) {
 		PrivateKeyHex: privateKeyHex,
 		PublicKeyHex:  publicKeyHex,
 	}
-	return wallet.NewRawKeyIdentity(id, key)
+	return wallet.NewRawIdentity(id, key)
 }
 
 func createX509Identity() (wallet.Identity, error) {

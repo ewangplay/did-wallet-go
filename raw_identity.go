@@ -58,8 +58,8 @@ func (x *RawIdentity) PublicKeyHex() string {
 	return x.Key.PublicKeyHex
 }
 
-// NewRawKeyIdentity creates an Raw identity for storage in a wallet
-func NewRawKeyIdentity(id string, key *Key) (*RawIdentity, error) {
+// NewRawIdentity creates an Raw identity for storage in a wallet
+func NewRawIdentity(id string, key *Key) (*RawIdentity, error) {
 	if id == "" {
 		return nil, fmt.Errorf("id must not be empty")
 	}
