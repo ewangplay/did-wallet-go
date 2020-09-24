@@ -1,16 +1,18 @@
 package wallet
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
-const x509Type = "X.509"
 const x509V1 = 1
 
 // X509Identity represents an X509 identity
 type X509Identity struct {
-	Ver         int         `json:"version"`
-	ID          string      `json:"id"`
-	IDType      string      `json:"type"`
-	Credentials credentials `json:"credentials"`
+	Ver         int          `json:"version"`
+	ID          string       `json:"id"`
+	IDType      IdentityType `json:"type"`
+	Credentials credentials  `json:"credentials"`
 }
 
 type credentials struct {
@@ -24,7 +26,7 @@ func (x *X509Identity) Version() int {
 }
 
 // Type returns X509 for this identity type
-func (x *X509Identity) Type() string {
+func (x *X509Identity) Type() IdentityType {
 	return x.IDType
 }
 
@@ -44,8 +46,18 @@ func (x *X509Identity) Key() string {
 }
 
 // NewX509Identity creates an X509 identity for storage in a wallet
-func NewX509Identity(id string, cert string, key string) *X509Identity {
-	return &X509Identity{x509V1, id, x509Type, credentials{cert, key}}
+func NewX509Identity(id string, cert string, key string) (*X509Identity, error) {
+	if id == "" {
+		return nil, fmt.Errorf("id must not be empty")
+	}
+	if cert == "" {
+		return nil, fmt.Errorf("cert must not be empty")
+	}
+	if key == "" {
+		return nil, fmt.Errorf("key must not be empty")
+	}
+
+	return &X509Identity{x509V1, id, X509IdentityType, credentials{cert, key}}, nil
 }
 
 // Marshal returns the JSON encoding of this identity

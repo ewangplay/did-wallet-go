@@ -35,7 +35,8 @@ func testWalletSuite(t *testing.T, gen walletGenerator) {
 }
 
 func testInsertionAndExistance(t *testing.T, wallet *Wallet) {
-	wallet.Put("label1", NewX509Identity("did:example:3dda540891d14a1baec2c7485c273c00", "testCert", "testPrivKey"))
+	x, _ := NewX509Identity("did:example:3dda540891d14a1baec2c7485c273c00", "testCert", "testPrivKey")
+	wallet.Put("label1", x)
 	exists := wallet.Exists("label1")
 	if exists != true {
 		t.Fatal("Expected label1 to be in wallet")
@@ -57,13 +58,14 @@ func testLookupNonExist(t *testing.T, wallet *Wallet) {
 }
 
 func testInsertionAndLookup(t *testing.T, wallet *Wallet) {
-	wallet.Put("label1", NewX509Identity("did:example:3dda540891d14a1baec2c7485c273c00", "testCert", "testPrivKey"))
+	x, _ := NewX509Identity("did:example:3dda540891d14a1baec2c7485c273c00", "testCert", "testPrivKey")
+	wallet.Put("label1", x)
 	entry, err := wallet.Get("label1")
 	if err != nil {
 		t.Fatalf("Failed to lookup identity: %s", err)
 	}
-	if entry.Type() != x509Type {
-		t.Fatalf("The identity type shoud be %s", x509Type)
+	if entry.Type() != X509IdentityType {
+		t.Fatalf("The identity type shoud be %s", X509IdentityType)
 	}
 }
 
@@ -72,8 +74,10 @@ func testContentsOfWallet(t *testing.T, wallet *Wallet) {
 	if len(contents) != 0 {
 		t.Fatal("Wallet should be empty")
 	}
-	wallet.Put("label1", NewX509Identity("did:example:3dda540891d14a1baec2c7485c273c00", "testCert", "testPrivKey"))
-	wallet.Put("label2", NewX509Identity("did:example:3dda540891d14a1baec2c7485c273c00", "testCert", "testPrivKey"))
+
+	x, _ := NewX509Identity("did:example:3dda540891d14a1baec2c7485c273c00", "testCert", "testPrivKey")
+	wallet.Put("label1", x)
+	wallet.Put("label2", x)
 	contents, _ = wallet.List()
 	sort.Strings(contents)
 	expected := []string{"label1", "label2"}
@@ -84,9 +88,10 @@ func testContentsOfWallet(t *testing.T, wallet *Wallet) {
 
 func testRemovalFromWallet(t *testing.T, wallet *Wallet) {
 	contents, _ := wallet.List()
-	wallet.Put("label1", NewX509Identity("did:example:3dda540891d14a1baec2c7485c273c00", "testCert1", "testPrivKey"))
-	wallet.Put("label2", NewX509Identity("did:example:3dda540891d14a1baec2c7485c273c00", "testCert2", "testPrivKey"))
-	wallet.Put("label3", NewX509Identity("did:example:3dda540891d14a1baec2c7485c273c00", "testCert3", "testPrivKey"))
+	x, _ := NewX509Identity("did:example:3dda540891d14a1baec2c7485c273c00", "testCert", "testPrivKey")
+	wallet.Put("label1", x)
+	wallet.Put("label2", x)
+	wallet.Put("label3", x)
 	wallet.Remove("label2")
 	contents, _ = wallet.List()
 	sort.Strings(contents)
@@ -124,7 +129,7 @@ func (id *badIdentity) Version() int {
 	return 1
 }
 
-func (id *badIdentity) Type() string {
+func (id *badIdentity) Type() IdentityType {
 	return "bad"
 }
 

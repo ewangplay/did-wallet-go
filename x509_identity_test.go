@@ -9,14 +9,14 @@ func TestX509Identity(t *testing.T) {
 	id := "did:example:3dda540891d14a1baec2c7485c273c00"
 	cert := "testCert"
 	key := "testPrivKey"
-	x := NewX509Identity(id, cert, key)
+	x, _ := NewX509Identity(id, cert, key)
 
 	if x.Version() != x509V1 {
 		t.Fatalf("The version of the X509 identity should be %v", x509V1)
 	}
 
-	if x.Type() != x509Type {
-		t.Fatalf("The type of the X509 identity should be %v", x509Type)
+	if x.Type() != X509IdentityType {
+		t.Fatalf("The type of the X509 identity should be %v", X509IdentityType)
 	}
 
 	if x.Did() != id {

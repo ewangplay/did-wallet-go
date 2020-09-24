@@ -5,6 +5,27 @@ import (
 	"fmt"
 )
 
+// KeyType represents key type
+type KeyType string
+
+// KeyType constants
+const (
+	RSAKeyType        KeyType = "RSA"
+	Ed25519KeyType    KeyType = "Ed25519"
+	Secp256k1KeyType  KeyType = "Secp256k1"
+	secp256r1KeyType  KeyType = "secp256r1"
+	Curve25519KeyType KeyType = "Curve25519"
+)
+
+// IdentityType represents identity type
+type IdentityType string
+
+// IdentityType constants
+const (
+	X509IdentityType IdentityType = "X509"
+	RawIdentityType  IdentityType = "RawKey"
+)
+
 // wallet represents a did wallet
 type wallet interface {
 	Put(label string, id Identity) error
@@ -17,14 +38,14 @@ type wallet interface {
 // Identity represents a did identity
 type Identity interface {
 	Version() int
-	Type() string
+	Type() IdentityType
 	Did() string
 	Marshal() ([]byte, error)
 	Unmarshal(data []byte) (Identity, error)
 }
 
-// WalletStore is the interface for implementations that provide backing storage for identities in a wallet.
-type WalletStore interface {
+// Store is the interface for implementations that provide backing storage for identities in a wallet.
+type Store interface {
 	Put(label string, stream []byte) error
 	Get(label string) ([]byte, error)
 	List() ([]string, error)
@@ -34,7 +55,7 @@ type WalletStore interface {
 
 // A Wallet stores identity information.
 type Wallet struct {
-	store WalletStore
+	store Store
 }
 
 // Put an identity into the wallet
@@ -74,13 +95,13 @@ func (w *Wallet) Get(label string) (Identity, error) {
 	}
 
 	var id Identity
-	switch idType {
-	case x509Type:
+	switch IdentityType(idType) {
+	case X509IdentityType:
 		id = &X509Identity{}
-	case rawKeyType:
-		id = &RawKeyIdentity{}
+	case RawIdentityType:
+		id = &RawIdentity{}
 	default:
-		return nil, fmt.Errorf("invalid identity format: unsupported identity type: " + idType)
+		return nil, fmt.Errorf("unsupported identity type: %v", idType)
 	}
 
 	return id.Unmarshal(content)

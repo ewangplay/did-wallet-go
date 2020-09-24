@@ -35,7 +35,7 @@ func TestFormatCompatibility(t *testing.T) {
 		t.Fatalf("Incorrect MspID: %s", x509.Did())
 	}
 
-	if x509.Type() != x509Type {
+	if x509.Type() != X509IdentityType {
 		t.Fatalf("Incorrect IDType: %s", x509.Type())
 	}
 
