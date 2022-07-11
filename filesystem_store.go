@@ -9,7 +9,7 @@ import (
 const dataFileExtension string = ".id"
 const extensionLength = 3
 
-type fileSystemWalletStore struct {
+type FileSystemStore struct {
 	path string
 }
 
@@ -18,21 +18,19 @@ type fileSystemWalletStore struct {
 // 	path specifies where on the filesystem to store the wallet.
 //  Returns:
 // 	A Wallet object.
-func NewFileSystemWallet(path string) (*Wallet, error) {
+func NewFileSystemStore(path string) (*FileSystemStore, error) {
 	cleanPath := filepath.Clean(path)
 	err := os.MkdirAll(cleanPath, os.ModePerm)
-
 	if err != nil {
 		return nil, err
 	}
 
-	store := &fileSystemWalletStore{cleanPath}
-	return &Wallet{store}, nil
-
+	store := &FileSystemStore{cleanPath}
+	return store, nil
 }
 
 // Put an identity into the wallet.
-func (fsw *fileSystemWalletStore) Put(label string, content []byte) error {
+func (fsw *FileSystemStore) Put(label string, content []byte) error {
 	pathname := filepath.Join(fsw.path, label) + dataFileExtension
 
 	f, err := os.OpenFile(filepath.Clean(pathname), os.O_RDWR|os.O_CREATE, 0600)
@@ -54,21 +52,21 @@ func (fsw *fileSystemWalletStore) Put(label string, content []byte) error {
 }
 
 // Get an identity from the wallet.
-func (fsw *fileSystemWalletStore) Get(label string) ([]byte, error) {
+func (fsw *FileSystemStore) Get(label string) ([]byte, error) {
 	pathname := filepath.Join(fsw.path, label) + dataFileExtension
 
 	return ioutil.ReadFile(filepath.Clean(pathname))
 }
 
 // Remove an identity from the wallet. If the identity does not exist, this method does nothing.
-func (fsw *fileSystemWalletStore) Remove(label string) error {
+func (fsw *FileSystemStore) Remove(label string) error {
 	pathname := filepath.Join(fsw.path, label) + dataFileExtension
 	_ = os.Remove(filepath.Clean(pathname))
 	return nil
 }
 
 // Exists tests the existence of an identity in the wallet.
-func (fsw *fileSystemWalletStore) Exists(label string) bool {
+func (fsw *FileSystemStore) Exists(label string) bool {
 	pathname := filepath.Join(fsw.path, label) + dataFileExtension
 
 	_, err := os.Stat(filepath.Clean(pathname))
@@ -76,7 +74,7 @@ func (fsw *fileSystemWalletStore) Exists(label string) bool {
 }
 
 // List all of the labels in the wallet.
-func (fsw *fileSystemWalletStore) List() ([]string, error) {
+func (fsw *FileSystemStore) List() ([]string, error) {
 	files, err := ioutil.ReadDir(fsw.path)
 
 	if err != nil {
