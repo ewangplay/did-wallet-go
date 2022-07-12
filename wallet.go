@@ -1,9 +1,11 @@
 package wallet
 
 import (
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"hash"
 	"strings"
 	"time"
 
@@ -11,6 +13,7 @@ import (
 	"github.com/ewangplay/serval/io"
 	sdk "github.com/ewangplay/serval/sdk/go"
 	"github.com/ewangplay/serval/utils"
+	"github.com/jerray/qsign"
 )
 
 // A Wallet stores identity information.
@@ -18,6 +21,7 @@ type Wallet struct {
 	store  Store
 	client *sdk.Client
 	csp    cl.CSP
+	qsign  *qsign.Qsign
 }
 
 func NewWallet(addr string, store Store) (*Wallet, error) {
@@ -39,6 +43,10 @@ func NewWallet(addr string, store Store) (*Wallet, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = client.Ping()
+	if err != nil {
+		return nil, err
+	}
 
 	// Get the default CSP instance
 	csp, err := cl.GetCSP(nil)
@@ -46,7 +54,19 @@ func NewWallet(addr string, store Store) (*Wallet, error) {
 		return nil, err
 	}
 
-	return &Wallet{store, client, csp}, nil
+	// New Qsign instance
+	q := qsign.NewQsign(qsign.Options{
+		// To use a hash.Hash other than md5
+		Hasher: func() hash.Hash {
+			return sha256.New()
+		},
+		// To use a encoding other than hex
+		Encoder: func() qsign.Encoding {
+			return base64.StdEncoding
+		},
+	})
+
+	return &Wallet{store, client, csp, q}, nil
 }
 
 func (w *Wallet) CreateAccount() (string, error) {
@@ -91,7 +111,7 @@ func (w *Wallet) genDidMaterials() (did string, ddo *io.DDO, keys []*io.Key, err
 	methodSpecificID := strings.ReplaceAll(utils.GenerateUUID(), "-", "")
 	did = fmt.Sprintf("did:%s:%s", methodName, methodSpecificID)
 
-	// Generate master public / private key pair
+	// Generate master key pair
 	key1 := fmt.Sprintf("%s#keys-1", did)
 	priKey1, err := w.csp.KeyGen(&cl.ED25519KeyGenOpts{})
 	if err != nil {
@@ -110,7 +130,7 @@ func (w *Wallet) genDidMaterials() (did string, ddo *io.DDO, keys []*io.Key, err
 		return
 	}
 
-	// Generate standby public / private key pair
+	// Generate standby key pair
 	key2 := fmt.Sprintf("%s#keys-2", did)
 	priKey2, err := w.csp.KeyGen(&cl.ED25519KeyGenOpts{})
 	if err != nil {
@@ -125,13 +145,6 @@ func (w *Wallet) genDidMaterials() (did string, ddo *io.DDO, keys []*io.Key, err
 		return
 	}
 	pubKey2Bytes, err := pubKey2.Bytes()
-	if err != nil {
-		return
-	}
-	// Use master private key to sign did
-	// Once an entity's DID is generated,
-	// it does not change, so signing did is appropriate.
-	signature, err := w.csp.Sign(priKey1, []byte(did), nil)
 	if err != nil {
 		return
 	}
@@ -157,16 +170,32 @@ func (w *Wallet) genDidMaterials() (did string, ddo *io.DDO, keys []*io.Key, err
 		Controller:     did,
 		Authentication: []string{key1},
 		Recovery:       []string{key2},
-		Proof: io.Proof{
-			Type:           cl.ED25519,
-			Creator:        key1,
-			SignatureValue: base64.StdEncoding.EncodeToString(signature),
-		},
-		Created: now,
-		Updated: now,
+		Created:        now,
+		Updated:        now,
 	}
 
-	// Response body
+	// Use master private key to sign ddo
+	data, err := w.qsign.Digest(ddo)
+	if err != nil {
+		return
+	}
+	digest, err := w.csp.Hash(data, &cl.SHA256Opts{})
+	if err != nil {
+		return
+	}
+	signature, err := w.csp.Sign(priKey1, digest, nil)
+	if err != nil {
+		return
+	}
+
+	// Set the ddo proof
+	ddo.Proof = io.Proof{
+		Type:           cl.ED25519,
+		Creator:        key1,
+		SignatureValue: base64.StdEncoding.EncodeToString(signature),
+	}
+
+	// Build Key list
 	keys = []*io.Key{
 		{
 			ID:            key1,

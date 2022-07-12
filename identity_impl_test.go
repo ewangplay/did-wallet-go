@@ -1,10 +1,11 @@
-package wallet
+package wallet_test
 
 import (
 	"encoding/json"
 	"reflect"
 	"testing"
 
+	wallet "github.com/ewangplay/did-wallet"
 	io "github.com/ewangplay/serval/io"
 )
 
@@ -37,7 +38,7 @@ func TestNewIdentity(t *testing.T) {
 			t.Fatalf("Unmarshal keys failed: %v", err)
 		}
 
-		x, err := NewIdentity(did, keys)
+		x, err := wallet.NewIdentity(did, keys)
 		if err != nil {
 			t.Fatalf("New identity failed: %v", err)
 		}

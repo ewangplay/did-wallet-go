@@ -7,6 +7,7 @@ require (
 	github.com/ewangplay/serval v0.1.0
 	github.com/ewangplay/serval/io v0.0.0-20220708082908-97367d7c4111
 	github.com/ewangplay/serval/sdk/go v0.0.0-20220708084837-1c59a48f0943
+	github.com/jerray/qsign v1.2.1
 )
 
 require (
