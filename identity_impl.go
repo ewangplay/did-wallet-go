@@ -1,9 +1,11 @@
 package wallet
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 
+	cl "github.com/ewangplay/cryptolib"
 	io "github.com/ewangplay/serval/io"
 )
 
@@ -47,4 +49,48 @@ func (x *Identity) Unmarshal(data []byte) (IIdentity, error) {
 		return nil, err
 	}
 	return x, nil
+}
+
+func (x *Identity) GetMasterKeyID() string {
+	return x.MasterKey.ID
+}
+
+func (x *Identity) GetMasterKey() (k cl.Key, err error) {
+	kBytes, err := hex.DecodeString(x.MasterKey.PrivateKeyHex)
+	if err != nil {
+		return nil, fmt.Errorf("master private key (%v) is invalid: %v", x.MasterKey.ID, err)
+	}
+
+	switch x.MasterKey.Type {
+	case cl.ED25519:
+		k = &cl.Ed25519PrivateKey{
+			PrivKey: kBytes,
+		}
+	default:
+		return nil, fmt.Errorf("master private key (%v) has unsupported type: %v", x.MasterKey.ID, x.MasterKey.Type)
+	}
+
+	return
+}
+
+func (x *Identity) GetStandbyKeyID() string {
+	return x.StandbyKey.ID
+}
+
+func (x *Identity) GetStandbyKey() (k cl.Key, err error) {
+	kBytes, err := hex.DecodeString(x.StandbyKey.PrivateKeyHex)
+	if err != nil {
+		return nil, fmt.Errorf("standby private key (%v) is invalid: %v", x.StandbyKey.ID, err)
+	}
+
+	switch x.StandbyKey.Type {
+	case cl.ED25519:
+		k = &cl.Ed25519PrivateKey{
+			PrivKey: kBytes,
+		}
+	default:
+		return nil, fmt.Errorf("standby private key (%v) has unsupported type: %v", x.StandbyKey.ID, x.StandbyKey.Type)
+	}
+
+	return
 }

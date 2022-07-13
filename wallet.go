@@ -175,15 +175,7 @@ func (w *Wallet) genDidMaterials() (did string, ddo *io.DDO, keys []*io.Key, err
 	}
 
 	// Use master private key to sign ddo
-	data, err := w.qsign.Digest(ddo)
-	if err != nil {
-		return
-	}
-	digest, err := w.csp.Hash(data, &cl.SHA256Opts{})
-	if err != nil {
-		return
-	}
-	signature, err := w.csp.Sign(priKey1, digest, nil)
+	signature, err := w.SignDDO(priKey1, ddo)
 	if err != nil {
 		return
 	}
@@ -214,7 +206,58 @@ func (w *Wallet) genDidMaterials() (did string, ddo *io.DDO, keys []*io.Key, err
 	return
 }
 
+func (w *Wallet) SignDDO(k cl.Key, ddo *io.DDO) (signature []byte, err error) {
+	data, err := w.qsign.Digest(ddo)
+	if err != nil {
+		return
+	}
+	digest, err := w.csp.Hash(data, &cl.SHA256Opts{})
+	if err != nil {
+		return
+	}
+	return w.csp.Sign(k, digest, nil)
+}
+
 func (w *Wallet) RemoveAccount(did string) error {
+
+	// Use standby private key to sign did
+	identity, err := w.Get(did)
+	if err != nil {
+		return err
+	}
+	k, err := identity.GetStandbyKey()
+	if err != nil {
+		return err
+	}
+	digest, err := w.csp.Hash([]byte(did), &cl.SHA256Opts{})
+	if err != nil {
+		return err
+	}
+	signature, err := w.csp.Sign(k, digest, nil)
+	if err != nil {
+		return err
+	}
+
+	// Revoke the did on the network
+	req := &io.RevokeDidReq{
+		Did: did,
+		Proof: io.Proof{
+			Type:           k.Type(),
+			Creator:        identity.GetStandbyKeyID(),
+			SignatureValue: base64.StdEncoding.EncodeToString(signature),
+		},
+	}
+	err = w.client.RevokeDid(req)
+	if err != nil {
+		return err
+	}
+
+	// Delete the identity from the local store
+	err = w.store.Remove(did)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

@@ -128,6 +128,8 @@ github.com/ewangplay/serval v0.1.0 h1:eX6PBVtMYOo6WjJwTq1EuoE2kDRyJJcwqjJRc0Tomp
 github.com/ewangplay/serval v0.1.0/go.mod h1:u1UBKozcrDVaaTw0yoaC52q8iHxNx1WPdaPCXG0F4Lk=
 github.com/ewangplay/serval/io v0.0.0-20220708082908-97367d7c4111 h1:gkcJV/hH6lZKDNcUbWw23PHPc/nqqFxvPDIZoRuTqdc=
 github.com/ewangplay/serval/io v0.0.0-20220708082908-97367d7c4111/go.mod h1:lOk5UTaWPLoPTHLInMQSDXUIAflnCVfAoYoE/AL0XiI=
+github.com/ewangplay/serval/io v0.0.0-20220713065604-fe59ebea56d6 h1:WzT1R6cVQCVwmUbzYtfu2w7+gXcvGh65/+2xjM6dEDY=
+github.com/ewangplay/serval/io v0.0.0-20220713065604-fe59ebea56d6/go.mod h1:lOk5UTaWPLoPTHLInMQSDXUIAflnCVfAoYoE/AL0XiI=
 github.com/ewangplay/serval/sdk/go v0.0.0-20220708084837-1c59a48f0943 h1:ZcnwOiFuO8TtKKbtiekqx+rlplCAzE20pG3ZIK67NX4=
 github.com/ewangplay/serval/sdk/go v0.0.0-20220708084837-1c59a48f0943/go.mod h1:L51DU05BifA/903kuk58Mlk5D2p9L5HBUmJyYnsoUJw=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
