@@ -96,7 +96,7 @@ func (w *Wallet) CreateAccount() (string, error) {
 	}
 
 	// Put the identity to local store
-	err = w.Put(identity.Did(), identity)
+	err = w.save(identity)
 	if err != nil {
 		return "", err
 	}
@@ -175,16 +175,9 @@ func (w *Wallet) genDidMaterials() (did string, ddo *io.DDO, keys []*io.Key, err
 	}
 
 	// Use master private key to sign ddo
-	signature, err := w.SignDDO(priKey1, ddo)
+	err = utils.SignDDO(w.csp, w.qsign, key1, priKey1, ddo)
 	if err != nil {
 		return
-	}
-
-	// Set the ddo proof
-	ddo.Proof = io.Proof{
-		Type:           cl.ED25519,
-		Creator:        key1,
-		SignatureValue: base64.StdEncoding.EncodeToString(signature),
 	}
 
 	// Build Key list
@@ -206,22 +199,9 @@ func (w *Wallet) genDidMaterials() (did string, ddo *io.DDO, keys []*io.Key, err
 	return
 }
 
-func (w *Wallet) SignDDO(k cl.Key, ddo *io.DDO) (signature []byte, err error) {
-	data, err := w.qsign.Digest(ddo)
-	if err != nil {
-		return
-	}
-	digest, err := w.csp.Hash(data, &cl.SHA256Opts{})
-	if err != nil {
-		return
-	}
-	return w.csp.Sign(k, digest, nil)
-}
-
 func (w *Wallet) RemoveAccount(did string) error {
-
 	// Use standby private key to sign did
-	identity, err := w.Get(did)
+	identity, err := w.load(did)
 	if err != nil {
 		return err
 	}
@@ -229,11 +209,8 @@ func (w *Wallet) RemoveAccount(did string) error {
 	if err != nil {
 		return err
 	}
-	digest, err := w.csp.Hash([]byte(did), &cl.SHA256Opts{})
-	if err != nil {
-		return err
-	}
-	signature, err := w.csp.Sign(k, digest, nil)
+
+	signature, err := utils.SignProof(w.csp, did, k)
 	if err != nil {
 		return err
 	}
@@ -261,26 +238,32 @@ func (w *Wallet) RemoveAccount(did string) error {
 	return nil
 }
 
-// Put an identity into the wallet
+// ListAccount returns the list of all accounts in the wallet.
+//
+//  Returns:
+//  A list of identity labels in the wallet.
+func (w *Wallet) ListAccount() ([]string, error) {
+	return w.store.List()
+}
+
+// Save an identity into the wallet
 //  Parameters:
-//  label specifies the name to be associated with the identity.
-//  id specifies the identity to store in the wallet.
-func (w *Wallet) Put(label string, id IIdentity) error {
-	content, err := id.Marshal()
+//  identity specifies the identity to store in the wallet.
+func (w *Wallet) save(identity IIdentity) error {
+	content, err := identity.Marshal()
 	if err != nil {
 		return err
 	}
-
-	return w.store.Put(label, content)
+	return w.store.Put(identity.Did(), content)
 }
 
-// Get an identity from the wallet. The implementation class of the identity object will vary depending on its type.
+// load an identity from the wallet. The implementation class of the identity object will vary depending on its type.
 //  Parameters:
 //  label specifies the name of the identity in the wallet.
-//
+
 //  Returns:
 //  The identity object.
-func (w *Wallet) Get(label string) (IIdentity, error) {
+func (w *Wallet) load(label string) (IIdentity, error) {
 	content, err := w.store.Get(label)
 	if err != nil {
 		return nil, err
@@ -288,12 +271,4 @@ func (w *Wallet) Get(label string) (IIdentity, error) {
 
 	var id Identity
 	return id.Unmarshal(content)
-}
-
-// List returns the labels of all identities in the wallet.
-//
-//  Returns:
-//  A list of identity labels in the wallet.
-func (w *Wallet) ListAccount() ([]string, error) {
-	return w.store.List()
 }

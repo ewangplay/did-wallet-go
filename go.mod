@@ -4,9 +4,9 @@ go 1.18
 
 require (
 	github.com/ewangplay/cryptolib v0.6.0
-	github.com/ewangplay/serval v0.1.0
 	github.com/ewangplay/serval/io v0.0.0-20220713065604-fe59ebea56d6
 	github.com/ewangplay/serval/sdk/go v0.0.0-20220708084837-1c59a48f0943
+	github.com/ewangplay/serval/utils v0.0.0-20220714091755-8d810224ad5c
 	github.com/jerray/qsign v1.2.1
 )
 
